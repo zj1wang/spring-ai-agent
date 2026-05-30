@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-ai-alibaba-agent-demo
+  ai:
+    dashscope:
+      api-key: sk-4f386910d7fd4195b381c71232441a5f
+      chat:
+        options:
+          model: qwen-turbo
