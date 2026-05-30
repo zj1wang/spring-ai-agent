@@ -1,43 +1,58 @@
 package com.example.springaialibaba.mcp;
 
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/mcp/sentiment")
 public class SentimentAnalysisMcp {
 
-    private final ChatModel chatModel;
-
-    public SentimentAnalysisMcp(ChatModel chatModel) {
-        this.chatModel = chatModel;
-    }
-
     @PostMapping("/analyze")
     public String analyzeSentiment(@RequestBody String text) {
-        String template = """
-            请分析以下文本的情感倾向：
-            {text}
-            
-            请按照以下格式输出：
-            1. 情感倾向：（正面/负面/中性）
-            2. 评分：（-1到1之间）
-            3. 分析理由：
-            """;
-        PromptTemplate promptTemplate = new PromptTemplate(template);
-        Prompt prompt = promptTemplate.create(Map.of("text", text));
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        String lowerText = text.toLowerCase();
+        
+        int positiveScore = countMatches(lowerText, "好", "棒", "赞", "喜欢", "爱", "开心", "高兴", "优秀", "精彩", "完美");
+        int negativeScore = countMatches(lowerText, "坏", "差", "糟", "讨厌", "恨", "伤心", "难过", "失望", "垃圾");
+        
+        String sentiment;
+        double score;
+        
+        if (positiveScore > negativeScore) {
+            sentiment = "正面";
+            score = Math.min(1.0, positiveScore * 0.2);
+        } else if (negativeScore > positiveScore) {
+            sentiment = "负面";
+            score = Math.max(-1.0, -negativeScore * 0.2);
+        } else {
+            sentiment = "中性";
+            score = 0.0;
+        }
+        
+        return String.format("1. 情感倾向：%s\n2. 评分：%.2f\n3. 分析理由：文本包含%d个正面词汇，%d个负面词汇", 
+                           sentiment, score, positiveScore, negativeScore);
     }
 
     @PostMapping("/score")
     public String getSentimentScore(@RequestBody String text) {
-        String template = "请为以下文本打分，情感分数范围从-1到1，-1表示非常负面，1表示非常正面。请只返回分数：\n{text}";
-        PromptTemplate promptTemplate = new PromptTemplate(template);
-        Prompt prompt = promptTemplate.create(Map.of("text", text));
-        return chatModel.call(prompt).getResult().getOutput().getContent();
+        String lowerText = text.toLowerCase();
+        
+        int positiveScore = countMatches(lowerText, "好", "棒", "赞", "喜欢", "爱", "开心", "高兴", "优秀", "精彩", "完美");
+        int negativeScore = countMatches(lowerText, "坏", "差", "糟", "讨厌", "恨", "伤心", "难过", "失望", "垃圾");
+        
+        double score = (positiveScore - negativeScore) * 0.1;
+        score = Math.max(-1.0, Math.min(1.0, score));
+        
+        return String.format("%.2f", score);
+    }
+    
+    private int countMatches(String text, String... keywords) {
+        int count = 0;
+        for (String keyword : keywords) {
+            int index = 0;
+            while ((index = text.indexOf(keyword, index)) != -1) {
+                count++;
+                index += keyword.length();
+            }
+        }
+        return count;
     }
 }

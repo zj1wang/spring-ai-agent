@@ -2,21 +2,21 @@ package com.example.springaialibaba;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @RestController
 public class SpringAiAlibabaAgentDemoApplication {
 
-    private final ChatModel chatModel;
-
-    public SpringAiAlibabaAgentDemoApplication(ChatModel chatModel) {
-        this.chatModel = chatModel;
-    }
-
     public static void main(String[] args) {
         SpringApplication.run(SpringAiAlibabaAgentDemoApplication.class, args);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @GetMapping("/")
@@ -34,11 +34,11 @@ public class SpringAiAlibabaAgentDemoApplication {
 
     @GetMapping("/api/chat")
     public String chatGet(@RequestParam String message) {
-        return chatModel.call(message);
+        return "收到消息: '" + message + "'\n\n这是一个模拟的AI回复。\n\n如需完整的AI功能，请配置阿里云DashScope API Key。";
     }
 
     @PostMapping("/api/chat")
     public String chatPost(@RequestBody String message) {
-        return chatModel.call(message);
+        return "收到消息: '" + message + "'\n\n这是一个模拟的AI回复。\n\n如需完整的AI功能，请配置阿里云DashScope API Key。";
     }
 }
