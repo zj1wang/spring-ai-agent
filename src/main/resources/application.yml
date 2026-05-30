@@ -10,3 +10,9 @@ spring:
       chat:
         options:
           model: qwen-turbo
+          temperature: 0.7
+
+logging:
+  level:
+    com.example.springaialibaba: DEBUG
+    org.springframework.ai: DEBUG
